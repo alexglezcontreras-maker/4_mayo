@@ -1,0 +1,26 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Traductor Simple</title>
+</head>
+<body>
+    <h2>Traductor EN → ES</h2>
+    <input id="text" placeholder="Escribe aquí">
+    <button onclick="translate()">Traducir</button>
+    <p id="result"></p>
+
+    <script>
+        function translate(){
+            const t = document.getElementById("text").value;
+            let res = "Traducción no disponible";
+
+            if(t === "I like soccer") res = "Me gusta el fútbol";
+            if(t === "How are you?") res = "¿Cómo estás?";
+            if(t === "What time is it?") res = "¿Qué hora es?";
+
+            document.getElementById("result").innerText = res;
+        }
+    </script>
+</body>
+</html>
