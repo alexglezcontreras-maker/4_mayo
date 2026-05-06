@@ -1,26 +1,502 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Traductor Simple</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Traductor Alemán ↔ Español · Mundial 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── CSS VARIABLES ─────────────────────────────────────── */
+    :root {
+      --black:   #0a0a0f;
+      --dark:    #111118;
+      --surface: #1a1a26;
+      --card:    #22223a;
+      --border:  #2e2e50;
+      --de:      #000000;
+      --de2:     #dd0000;
+      --de3:     #ffce00;
+      --cu:      #002b7f;
+      --cu2:     #f9e814;
+      --cu3:     #e31b23;
+      --gold:    #ffce00;
+      --white:   #f5f5f5;
+      --muted:   #8888aa;
+      --radius:  16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--black);
+      color: var(--white);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 15% 20%, rgba(221,0,0,0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 60% at 85% 80%, rgba(0,43,127,0.10) 0%, transparent 70%),
+        radial-gradient(ellipse 30% 30% at 50% 50%, rgba(255,206,0,0.04) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* ── HEADER ── */
+    header { position: relative; z-index: 10; padding: 0; overflow: hidden; }
+
+    .header-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 24px; padding: 20px 40px 18px;
+      background: linear-gradient(135deg, #0d0d0d 0%, #1a0a00 40%, #0a0a1a 100%);
+      border-bottom: 2px solid transparent;
+      border-image: linear-gradient(90deg, var(--de2), var(--de3), var(--cu2), var(--cu)) 1;
+    }
+
+    .logo-area { display: flex; align-items: center; gap: 18px; flex-shrink: 0; }
+    .wc-logo { width: 68px; height: 68px; flex-shrink: 0; }
+    .wc-title { display: flex; flex-direction: column; line-height: 1; }
+    .wc-title .fifa { font-family:'Inter',sans-serif; font-weight:700; font-size:10px; letter-spacing:4px; color:var(--muted); text-transform:uppercase; margin-bottom:2px; }
+    .wc-title .wc   { font-family:'Bebas Neue',sans-serif; font-size:38px; letter-spacing:2px; color:var(--white); line-height:.9; }
+    .wc-title .year { font-family:'Bebas Neue',sans-serif; font-size:28px; color:var(--gold); letter-spacing:3px; }
+
+    .matchup { display:flex; align-items:center; gap:20px; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:100px; padding:10px 28px 10px 20px; }
+    .team { display:flex; align-items:center; gap:10px; }
+    .flag { font-size:32px; line-height:1; filter:drop-shadow(0 2px 6px rgba(0,0,0,.6)); }
+    .team-name { font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
+    .de-team .team-name { color:#fff; }
+    .cu-team .team-name { color:var(--cu2); }
+    .vs-badge { font-family:'Bebas Neue',sans-serif; font-size:26px; color:var(--gold); padding:4px 14px; border:1px solid rgba(255,206,0,.3); border-radius:8px; background:rgba(255,206,0,.07); }
+
+    .match-info { display:flex; flex-direction:column; align-items:flex-end; gap:2px; flex-shrink:0; }
+    .match-date  { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:16px; color:var(--gold); letter-spacing:1px; }
+    .match-venue { font-size:12px; color:var(--muted); letter-spacing:.5px; }
+
+    .stripe { height:4px; background:linear-gradient(90deg,#000 20%,#dd0000 40%,#ffce00 60%,#002b7f 80%,#f9e814 100%); }
+
+    /* ── MAIN ── */
+    main { position:relative; z-index:10; max-width:960px; margin:0 auto; padding:40px 24px 60px; }
+
+    .app-title { text-align:center; margin-bottom:28px; }
+    .app-title h1 { font-family:'Bebas Neue',sans-serif; font-size:clamp(36px,6vw,64px); letter-spacing:3px; background:linear-gradient(135deg,#fff 0%,var(--gold) 60%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1; margin-bottom:8px; }
+    .app-title p  { font-size:14px; color:var(--muted); letter-spacing:1px; }
+
+    .model-badge { display:inline-flex; align-items:center; gap:6px; margin-top:8px; padding:4px 14px; border:1px solid var(--border); border-radius:100px; font-size:11px; color:var(--muted); background:rgba(255,255,255,.03); }
+    .model-badge .dot { width:7px; height:7px; border-radius:50%; background:#ef4444; transition:background .5s; }
+    .model-badge .dot.ready { background:#22c55e; animation:pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(1.3);} }
+
+    /* ── PROGRESS BAR ── */
+    .progress-section { margin-bottom:24px; }
+    .progress-section.hidden { display:none; }
+    .prog-label { font-size:13px; color:var(--muted); margin-bottom:8px; text-align:center; }
+    .prog-outer { height:6px; background:var(--border); border-radius:3px; overflow:hidden; }
+    .prog-inner { height:100%; width:0%; background:linear-gradient(90deg,var(--de2),var(--gold)); border-radius:3px; transition:width .3s ease; }
+
+    /* ── DIRECTION TOGGLE ── */
+    .direction-row { display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:28px; }
+    .lang-label { font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:700; letter-spacing:2px; color:var(--white); display:flex; align-items:center; gap:8px; }
+    .toggle-btn { width:52px; height:52px; border-radius:50%; border:2px solid var(--border); background:var(--card); color:var(--gold); font-size:22px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .25s; }
+    .toggle-btn:hover { border-color:var(--gold); background:rgba(255,206,0,.1); transform:rotate(180deg); }
+
+    /* ── TRANSLATOR CARD ── */
+    .translator-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.5); margin-bottom:28px; }
+    .panels { display:grid; grid-template-columns:1fr auto 1fr; min-height:260px; }
+    .panel { display:flex; flex-direction:column; }
+    .panel-header { padding:14px 18px 10px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border); }
+    .panel-de .panel-header { background:rgba(221,0,0,.08); }
+    .panel-es .panel-header { background:rgba(170,21,27,.07); }
+    .panel-flag { font-size:20px; }
+    .panel-lang { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:16px; letter-spacing:1.5px; text-transform:uppercase; }
+    .panel-de .panel-lang { color:#fff; }
+    .panel-es .panel-lang { color:#ffcc00; }
+
+    textarea { flex:1; width:100%; min-height:200px; padding:18px; background:transparent; border:none; outline:none; resize:none; font-family:'Inter',sans-serif; font-size:17px; line-height:1.6; color:var(--white); caret-color:var(--gold); }
+    textarea::placeholder { color:var(--muted); }
+    textarea:focus { background:rgba(255,255,255,.02); }
+    #outputText { color:#b5e2ff; pointer-events:none; }
+
+    .divider-v { width:1px; background:var(--border); position:relative; display:flex; align-items:center; justify-content:center; }
+    .divider-v::after { content:'⇄'; position:absolute; background:var(--surface); color:var(--muted); padding:6px; font-size:18px; }
+
+    /* ── ACTION BAR ── */
+    .action-bar { padding:16px 20px; border-top:1px solid var(--border); background:rgba(0,0,0,.2); display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .char-count { font-size:12px; color:var(--muted); }
+
+    .translate-btn { display:flex; align-items:center; gap:10px; padding:12px 36px; background:linear-gradient(135deg,var(--de2) 0%,#aa0000 100%); border:none; border-radius:100px; color:white; font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:700; letter-spacing:2px; text-transform:uppercase; cursor:pointer; transition:all .2s; box-shadow:0 4px 20px rgba(221,0,0,.3); }
+    .translate-btn:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 8px 28px rgba(221,0,0,.45); }
+    .translate-btn:disabled { opacity:.55; cursor:not-allowed; }
+    .btn-icon { font-size:18px; }
+
+    .clear-btn { background:transparent; border:1px solid var(--border); border-radius:100px; color:var(--muted); padding:10px 20px; font-size:13px; cursor:pointer; transition:all .2s; }
+    .clear-btn:hover { border-color:var(--de2); color:var(--white); }
+
+    /* ── LOADER ── */
+    .loader { display:none; flex-direction:column; align-items:center; justify-content:center; gap:12px; min-height:200px; color:var(--muted); font-size:14px; }
+    .loader.active { display:flex; }
+    .spinner { width:36px; height:36px; border:3px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin .8s linear infinite; }
+    @keyframes spin { to{transform:rotate(360deg);} }
+
+    /* ── EXAMPLES ── */
+    .section-label { font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
+    .examples-grid { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:36px; }
+    .example-btn { display:flex; flex-direction:column; align-items:flex-start; gap:2px; padding:12px 18px; background:var(--card); border:1px solid var(--border); border-radius:12px; cursor:pointer; transition:all .2s; text-align:left; }
+    .example-btn:hover { border-color:var(--gold); background:rgba(255,206,0,.06); transform:translateY(-2px); }
+    .example-de { font-size:14px; font-weight:600; color:var(--white); display:flex; align-items:center; gap:6px; }
+    .example-es { font-size:12px; color:var(--muted); padding-left:2px; }
+
+    /* ── STATUS ── */
+    .status-msg { padding:12px 18px; border-radius:10px; font-size:14px; margin-top:16px; display:none; }
+    .status-msg.error   { display:block; background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.3); color:#fca5a5; }
+    .status-msg.success { display:block; background:rgba(34,197,94,.08); border:1px solid rgba(34,197,94,.2); color:#86efac; }
+
+    /* ── FOOTER ── */
+    footer { position:relative; z-index:10; text-align:center; padding:24px; border-top:1px solid var(--border); font-size:12px; color:var(--muted); }
+
+    @media(max-width:640px) {
+      .header-bar { flex-wrap:wrap; padding:16px 20px; }
+      .matchup { display:none; }
+      .panels { grid-template-columns:1fr; }
+      .divider-v { width:100%; height:1px; }
+      .divider-v::after { content:'⇅'; }
+    }
+  </style>
 </head>
 <body>
-    <h2>Traductor EN → ES</h2>
-    <input id="text" placeholder="Escribe aquí">
-    <button onclick="translate()">Traducir</button>
-    <p id="result"></p>
 
-    <script>
-        function translate(){
-            const t = document.getElementById("text").value;
-            let res = "Traducción no disponible";
+<!-- ── HEADER ── -->
+<header>
+  <div class="header-bar">
 
-            if(t === "I like soccer") res = "Me gusta el fútbol";
-            if(t === "How are you?") res = "¿Cómo estás?";
-            if(t === "What time is it?") res = "¿Qué hora es?";
+    <div class="logo-area">
+      <svg class="wc-logo" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="gold_grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#ffe77a"/>
+            <stop offset="100%" style="stop-color:#c8920a"/>
+          </linearGradient>
+        </defs>
+        <path d="M60 10 L75 30 L90 28 L78 50 L85 68 L60 60 L35 68 L42 50 L30 28 L45 30 Z" fill="url(#gold_grad)" stroke="#ffce00" stroke-width="1.5"/>
+        <rect x="50" y="62" width="20" height="8" rx="2" fill="#ffce00"/>
+        <rect x="44" y="70" width="32" height="5" rx="2.5" fill="#ffce00"/>
+        <polygon points="60,2 62,7 67,7 63,10 65,15 60,12 55,15 57,10 53,7 58,7" fill="#ffce00"/>
+        <text x="36" y="105" font-family="Arial Black" font-size="30" font-weight="900" fill="white" letter-spacing="-1">2</text>
+        <text x="56" y="105" font-family="Arial Black" font-size="30" font-weight="900" fill="#ffce00" letter-spacing="-1">0</text>
+        <text x="75" y="105" font-family="Arial Black" font-size="30" font-weight="900" fill="white" letter-spacing="-1">2</text>
+        <text x="93" y="105" font-family="Arial Black" font-size="30" font-weight="900" fill="#ffce00" letter-spacing="-1">6</text>
+      </svg>
+      <div class="wc-title">
+        <span class="fifa">FIFA</span>
+        <span class="wc">WORLD CUP</span>
+        <span class="year">2026</span>
+      </div>
+    </div>
 
-            document.getElementById("result").innerText = res;
-        }
-    </script>
+    <div class="matchup">
+      <div class="team de-team">
+        <span class="flag">🇩🇪</span>
+        <span class="team-name">Alemania</span>
+      </div>
+      <span class="vs-badge">VS</span>
+      <div class="team cu-team">
+        <span class="team-name">Curazao</span>
+        <span class="flag">🇨🇼</span>
+      </div>
+    </div>
+
+    <div class="match-info">
+      <span class="match-date">🗓 14 DE JUNIO · 12:00 PM CDMX</span>
+      <span class="match-venue">NRG Stadium · Houston, Texas</span>
+    </div>
+
+  </div>
+  <div class="stripe"></div>
+</header>
+
+<!-- ── MAIN ── -->
+<main>
+
+  <div class="app-title">
+    <h1>Traductor Alemán ↔ Español</h1>
+    <p>100% en el navegador · Sin servidor · Sin API keys</p>
+    <div class="model-badge">
+      <span class="dot" id="statusDot"></span>
+      <span id="modelLabel">Cargando modelo…</span>
+    </div>
+  </div>
+
+  <!-- Progress bar (solo visible mientras carga el modelo) -->
+  <div class="progress-section" id="progressSection">
+    <div class="prog-label" id="progLabel">Descargando modelo de traducción (~100 MB)…</div>
+    <div class="prog-outer"><div class="prog-inner" id="progInner"></div></div>
+  </div>
+
+  <!-- Direction toggle -->
+  <div class="direction-row">
+    <span class="lang-label" id="srcLabel">🇩🇪 Alemán</span>
+    <button class="toggle-btn" title="Invertir idiomas" onclick="toggleDirection()">⇄</button>
+    <span class="lang-label" id="dstLabel">🇪🇸 Español</span>
+  </div>
+
+  <!-- Translator card -->
+  <div class="translator-card">
+    <div class="panels">
+
+      <div class="panel panel-de">
+        <div class="panel-header">
+          <span class="panel-flag" id="srcFlag">🇩🇪</span>
+          <span class="panel-lang" id="srcLang">Alemán</span>
+        </div>
+        <textarea id="inputText" placeholder="Escribe aquí el texto en alemán…" maxlength="1000" oninput="updateCharCount()"></textarea>
+      </div>
+
+      <div class="divider-v"></div>
+
+      <div class="panel panel-es">
+        <div class="panel-header">
+          <span class="panel-flag" id="dstFlag">🇪🇸</span>
+          <span class="panel-lang" id="dstLang">Español</span>
+        </div>
+        <div class="loader" id="loader">
+          <div class="spinner"></div>
+          <span id="loaderTxt">Traduciendo…</span>
+        </div>
+        <textarea id="outputText" readonly placeholder="La traducción aparecerá aquí…"></textarea>
+      </div>
+
+    </div>
+
+    <div class="action-bar">
+      <span class="char-count" id="charCount">0 / 1000 caracteres</span>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <button class="clear-btn" onclick="clearAll()">✕ Limpiar</button>
+        <button class="translate-btn" id="translateBtn" onclick="doTranslate()" disabled>
+          <span class="btn-icon">⚽</span>
+          Traducir
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-msg" id="statusMsg"></div>
+
+  <!-- Examples -->
+  <div class="section-label">Ejemplos rápidos</div>
+  <div class="examples-grid">
+
+    <button class="example-btn" onclick="loadExample('Ich mag Fußball', 'de_es')">
+      <span class="example-de">🇩🇪 Ich mag Fußball</span>
+      <span class="example-es">→ Me gusta el fútbol</span>
+    </button>
+
+    <button class="example-btn" onclick="loadExample('Wie geht es Ihnen?', 'de_es')">
+      <span class="example-de">🇩🇪 Wie geht es Ihnen?</span>
+      <span class="example-es">→ ¿Cómo está usted?</span>
+    </button>
+
+    <button class="example-btn" onclick="loadExample('Wie spät ist es?', 'de_es')">
+      <span class="example-de">🇩🇪 Wie spät ist es?</span>
+      <span class="example-es">→ ¿Qué hora es?</span>
+    </button>
+
+    <button class="example-btn" onclick="loadExample('Deutschland ist Weltmeister!', 'de_es')">
+      <span class="example-de">🇩🇪 Deutschland ist Weltmeister!</span>
+      <span class="example-es">→ ¡Alemania es campeón del mundo!</span>
+    </button>
+
+    <button class="example-btn" onclick="loadExample('¡Vamos a ganar el Mundial!', 'es_de')">
+      <span class="example-de">🇪🇸 ¡Vamos a ganar el Mundial!</span>
+      <span class="example-es">→ Wir werden die WM gewinnen!</span>
+    </button>
+
+    <button class="example-btn" onclick="loadExample('El partido empieza a las doce.', 'es_de')">
+      <span class="example-de">🇪🇸 El partido empieza a las doce.</span>
+      <span class="example-es">→ Das Spiel beginnt um zwölf Uhr.</span>
+    </button>
+
+  </div>
+
+</main>
+
+<footer>
+  Traductor en navegador · <strong>Helsinki-NLP/opus-mt via Transformers.js</strong> ·
+  Sin servidor · FIFA World Cup 2026 🏆 · 🇩🇪 Alemania vs Curazao 🇨🇼 · 14 Jun · Houston
+</footer>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+  MOTOR: @huggingface/transformers (Transformers.js)
+  Modelo: Helsinki-NLP/opus-mt-de-es  y  opus-mt-es-de
+  Corre 100% en el navegador con WebAssembly — sin servidor — sin API keys
+  GitHub Pages compatible ✓
+═══════════════════════════════════════════════════════════════════════════ -->
+<script type="module">
+import {
+  pipeline,
+  env
+} from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.0/dist/transformers.min.js';
+
+// Configuración: no usar modelos locales, usar caché del navegador
+env.allowLocalModels = false;
+env.useBrowserCache  = true;
+
+// ── Estado ─────────────────────────────────────────────────────────────────
+let pipeDeEs   = null;   // DE → ES
+let pipeEsDe   = null;   // ES → DE
+let modelReady = false;
+let direction  = 'de_es';
+
+// ── Helpers de UI ──────────────────────────────────────────────────────────
+const $  = id => document.getElementById(id);
+const showStatus = (msg, type) => { const el=$('statusMsg'); el.textContent=msg; el.className='status-msg '+type; };
+const hideStatus = () => { $('statusMsg').className='status-msg'; };
+
+function setProgress(pct, label) {
+  $('progressSection').classList.remove('hidden');
+  $('progInner').style.width = pct + '%';
+  $('progLabel').textContent = label;
+}
+function hideProgress() {
+  $('progressSection').classList.add('hidden');
+}
+
+// ── Callback de progreso de descarga ──────────────────────────────────────
+function makeCallback(name) {
+  return (evt) => {
+    if (evt.status === 'initiate') {
+      setProgress(0, `Iniciando descarga: ${name}…`);
+    } else if (evt.status === 'progress') {
+      const pct = Math.round(evt.progress ?? 0);
+      const mb  = evt.loaded ? (evt.loaded/1e6).toFixed(1) : '?';
+      const tot = evt.total  ? (evt.total /1e6).toFixed(1) : '?';
+      setProgress(pct, `${name}: ${pct}% · ${mb} MB / ${tot} MB`);
+    } else if (evt.status === 'done') {
+      setProgress(100, `✓ ${name} descargado`);
+    }
+  };
+}
+
+// ── Carga de modelos al inicio ─────────────────────────────────────────────
+async function loadModels() {
+  try {
+    // Modelo DE → ES
+    pipeDeEs = await pipeline(
+      'translation',
+      'Xenova/opus-mt-de-es',
+      { progress_callback: makeCallback('Alemán→Español') }
+    );
+
+    // Modelo ES → DE
+    pipeEsDe = await pipeline(
+      'translation',
+      'Xenova/opus-mt-es-de',
+      { progress_callback: makeCallback('Español→Alemán') }
+    );
+
+    // Todo listo
+    modelReady = true;
+    hideProgress();
+    $('statusDot').classList.add('ready');
+    $('modelLabel').textContent = 'Helsinki-NLP/opus-mt · Listo en tu navegador ✓';
+    $('translateBtn').disabled = false;
+    showStatus('✓ Modelo cargado. ¡Puedes traducir! (Ctrl+Enter)', 'success');
+    setTimeout(hideStatus, 4000);
+
+  } catch (err) {
+    hideProgress();
+    $('modelLabel').textContent = 'Error al cargar el modelo';
+    showStatus('Error: ' + err.message + ' — Verifica tu conexión a internet.', 'error');
+  }
+}
+
+// ── Traducción ─────────────────────────────────────────────────────────────
+async function doTranslate() {
+  if (!modelReady) { showStatus('⏳ Espera a que cargue el modelo…', 'error'); return; }
+  const text = $('inputText').value.trim();
+  if (!text)  { showStatus('Escribe algo primero ✏️', 'error'); return; }
+
+  const btn = $('translateBtn');
+  btn.disabled = true;
+  $('loader').classList.add('active');
+  $('loaderTxt').textContent = direction === 'de_es' ? 'Traduciendo DE→ES…' : 'Traduciendo ES→DE…';
+  $('outputText').style.display = 'none';
+  $('outputText').value = '';
+  hideStatus();
+
+  try {
+    const pipe   = direction === 'de_es' ? pipeDeEs : pipeEsDe;
+    const result = await pipe(text, { max_new_tokens: 256 });
+    const out    = result[0]?.translation_text ?? result[0]?.generated_text ?? '';
+    $('outputText').value = out;
+    showStatus('✓ Traducción completada', 'success');
+  } catch (err) {
+    showStatus('Error al traducir: ' + err.message, 'error');
+  } finally {
+    $('loader').classList.remove('active');
+    $('outputText').style.display = 'block';
+    btn.disabled = !modelReady;
+  }
+}
+
+// ── Invertir idioma ────────────────────────────────────────────────────────
+function toggleDirection() {
+  direction = direction === 'de_es' ? 'es_de' : 'de_es';
+  const tmp = $('inputText').value;
+  $('inputText').value  = $('outputText').value;
+  $('outputText').value = tmp;
+
+  const isDE = direction === 'de_es';
+  $('srcLabel').textContent  = isDE ? '🇩🇪 Alemán'  : '🇪🇸 Español';
+  $('dstLabel').textContent  = isDE ? '🇪🇸 Español' : '🇩🇪 Alemán';
+  $('srcFlag').textContent   = isDE ? '🇩🇪' : '🇪🇸';
+  $('dstFlag').textContent   = isDE ? '🇪🇸' : '🇩🇪';
+  $('srcLang').textContent   = isDE ? 'Alemán'  : 'Español';
+  $('dstLang').textContent   = isDE ? 'Español' : 'Alemán';
+  $('inputText').placeholder = isDE
+    ? 'Escribe aquí el texto en alemán…'
+    : 'Escribe aquí el texto en español…';
+
+  updateCharCount();
+  hideStatus();
+}
+
+// ── Cargar ejemplo ─────────────────────────────────────────────────────────
+function loadExample(text, dir) {
+  if (direction !== dir) toggleDirection();
+  $('inputText').value  = text;
+  $('outputText').value = '';
+  updateCharCount();
+  doTranslate();
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function updateCharCount() {
+  $('charCount').textContent = $('inputText').value.length + ' / 1000 caracteres';
+}
+function clearAll() {
+  $('inputText').value = ''; $('outputText').value = '';
+  updateCharCount(); hideStatus();
+}
+
+// Ctrl+Enter para traducir
+$('inputText').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) doTranslate();
+});
+
+// Exponer al HTML onclick
+window.doTranslate      = doTranslate;
+window.toggleDirection  = toggleDirection;
+window.loadExample      = loadExample;
+window.updateCharCount  = updateCharCount;
+window.clearAll         = clearAll;
+
+// ── Arrancar ───────────────────────────────────────────────────────────────
+loadModels();
+</script>
+
 </body>
 </html>
